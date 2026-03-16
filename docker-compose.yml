@@ -1,0 +1,120 @@
+---
+# ===========================================================================
+# Zuul CI/CD Lab - Docker Compose
+# ===========================================================================
+# Usage:
+#   docker compose up -d
+#   docker compose logs -f zuul-scheduler
+#   docker compose down
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # ZooKeeper - Coordination service
+  # ---------------------------------------------------------------------------
+  zookeeper:
+    image: zookeeper:3.9
+    container_name: zuul-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888;2181
+    volumes:
+      - zookeeper-data:/data
+      - zookeeper-log:/datalog
+    healthcheck:
+      test: ["CMD", "zkServer.sh", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # MySQL - Zuul database
+  # ---------------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: zuul-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_DATABASE: zuul
+      MYSQL_USER: zuul
+      MYSQL_PASSWORD: zuul_pass
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uzuul", "-pzuul_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # Zuul Scheduler
+  # ---------------------------------------------------------------------------
+  zuul-scheduler:
+    image: zuul/zuul-scheduler:latest
+    container_name: zuul-scheduler
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
+      - ./config/main.yaml:/etc/zuul/main.yaml:ro
+      - ./config/github-app.pem:/etc/zuul/github-app.pem:ro
+      - zuul-keys:/var/lib/zuul
+    command: zuul-scheduler -f
+
+  # ---------------------------------------------------------------------------
+  # Zuul Executor
+  # ---------------------------------------------------------------------------
+  zuul-executor:
+    image: zuul/zuul-executor:latest
+    container_name: zuul-executor
+    restart: unless-stopped
+    privileged: true                  # Needed for bubblewrap job isolation
+    depends_on:
+      - zuul-scheduler
+    volumes:
+      - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
+      - zuul-keys:/var/lib/zuul
+      - zuul-executor-logs:/var/log/zuul
+    command: zuul-executor -f
+
+  # ---------------------------------------------------------------------------
+  # Zuul Web (Dashboard + Webhook endpoint)
+  # ---------------------------------------------------------------------------
+  zuul-web:
+    image: zuul/zuul-web:latest
+    container_name: zuul-web
+    restart: unless-stopped
+    ports:
+      - "9000:9000"                   # Dashboard + webhook endpoint
+    depends_on:
+      - zuul-scheduler
+    volumes:
+      - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
+    command: zuul-web -f
+
+  # ---------------------------------------------------------------------------
+  # Nodepool Launcher (provisions test nodes)
+  # ---------------------------------------------------------------------------
+  nodepool-launcher:
+    image: zuul/nodepool-launcher:latest
+    container_name: nodepool-launcher
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    volumes:
+      - ./config/nodepool.yaml:/etc/nodepool/nodepool.yaml:ro
+    command: nodepool-launcher -f -l /etc/nodepool/nodepool.yaml
+
+volumes:
+  zookeeper-data:
+  zookeeper-log:
+  mysql-data:
+  zuul-keys:
+  zuul-executor-logs:

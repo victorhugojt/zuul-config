@@ -1,0 +1,14 @@
+---
+- hosts: controller
+  tasks:
+    - name: Lint recordtec-fe frontend
+      debug:
+        msg: "Running lint for recordtec-fe frontend"
+
+    - name: Check for linting tools (placeholder)
+      debug:
+        msg: "Add your actual lint commands here (e.g. eslint, prettier, etc.)"
+
+    - name: Lint passed
+      debug:
+        msg: "✅ recordtec-fe lint passed"

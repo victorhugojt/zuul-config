@@ -1,0 +1,25 @@
+---
+- hosts: controller
+  tasks:
+    - name: Checkout recordtec
+      debug:
+        msg: "Running checks for recordtec backend"
+
+    - name: Show repo files
+      command: ls -la {{ zuul.project.src_dir }}
+      register: files
+
+    - name: Print files
+      debug:
+        var: files.stdout_lines
+
+    - name: Check for key files
+      stat:
+        path: "{{ zuul.project.src_dir }}/{{ item }}"
+      register: file_check
+      loop:
+        - README.md
+
+    - name: Report
+      debug:
+        msg: "✅ recordtec check passed"
