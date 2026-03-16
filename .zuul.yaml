@@ -114,6 +114,7 @@
 # ---------------------------------------------------------------------------
 - project:
     name: victorhugojt/recordtec
+    merge-mode: squash
     check:
       jobs:
         - recordtec-lint
@@ -125,6 +126,7 @@
 
 - project:
     name: victorhugojt/recordtec-fe
+    merge-mode: squash
     check:
       jobs:
         - recordtec-fe-lint
