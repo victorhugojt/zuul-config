@@ -110,7 +110,19 @@ services:
         condition: service_healthy
     volumes:
       - ./config/nodepool.yaml:/etc/nodepool/nodepool.yaml:ro
-    command: nodepool-launcher -f -l /etc/nodepool/nodepool.yaml
+      - ./config/certs:/etc/nodepool/certs:ro
+    command: nodepool-launcher -f -c /etc/nodepool/nodepool.yaml
+
+  # ---------------------------------------------------------------------------
+  # Worker Node — where CI jobs actually run
+  # Built from node-image/Dockerfile — customize this image to add tools.
+  # Nodepool SSHes into this container to run Ansible playbooks.
+  # ---------------------------------------------------------------------------
+  zuul-node:
+    image: zuul-node:lab            # built from node-image/Dockerfile
+    container_name: zuul-node
+    hostname: zuul-node
+    restart: unless-stopped
 
 volumes:
   zookeeper-data:
