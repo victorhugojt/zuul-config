@@ -1,0 +1,48 @@
+---
+# ===========================================================================
+# victorhugojt/recordtec-fe — .zuul.yaml
+#
+# This repo owns its own CI jobs and decides which run in each pipeline.
+# All jobs inherit from "base" defined in zuul-config (the config-project).
+# Playbooks live inside THIS repo under playbooks/
+# ===========================================================================
+
+- job:
+    name: recordtec-fe-lint
+    parent: base
+    description: Lint the frontend codebase (eslint, prettier)
+    run: playbooks/lint.yaml
+
+- job:
+    name: recordtec-fe-unit-tests
+    parent: base
+    description: Run unit tests (vitest)
+    run: playbooks/unit-tests.yaml
+
+- job:
+    name: recordtec-fe-e2e-tests
+    parent: base
+    description: Run end-to-end tests (playwright)
+    run: playbooks/e2e-tests.yaml
+    timeout: 3600
+
+- job:
+    name: recordtec-fe-build
+    parent: base
+    description: Build the production bundle (vite build)
+    run: playbooks/build.yaml
+
+- project:
+    merge-mode: squash
+    check:
+      jobs:
+        - recordtec-fe-lint
+        - recordtec-fe-unit-tests
+        - recordtec-fe-e2e-tests
+        - recordtec-fe-build
+    gate:
+      jobs:
+        - recordtec-fe-lint
+        - recordtec-fe-unit-tests
+        - recordtec-fe-e2e-tests
+        - recordtec-fe-build

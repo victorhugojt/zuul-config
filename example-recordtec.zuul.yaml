@@ -1,0 +1,48 @@
+---
+# ===========================================================================
+# victorhugojt/recordtec — .zuul.yaml
+#
+# This repo owns its own CI jobs and decides which run in each pipeline.
+# All jobs inherit from "base" defined in zuul-config (the config-project).
+# Playbooks live inside THIS repo under playbooks/
+# ===========================================================================
+
+- job:
+    name: recordtec-lint
+    parent: base
+    description: Lint the backend codebase
+    run: playbooks/lint.yaml
+
+- job:
+    name: recordtec-unit-tests
+    parent: base
+    description: Run unit tests
+    run: playbooks/unit-tests.yaml
+
+- job:
+    name: recordtec-integration-tests
+    parent: base
+    description: Run integration tests against a live DB
+    run: playbooks/integration-tests.yaml
+    timeout: 3600
+
+- job:
+    name: recordtec-build
+    parent: base
+    description: Build the Docker image
+    run: playbooks/build.yaml
+
+- project:
+    merge-mode: squash
+    check:
+      jobs:
+        - recordtec-lint
+        - recordtec-unit-tests
+        - recordtec-integration-tests
+        - recordtec-build
+    gate:
+      jobs:
+        - recordtec-lint
+        - recordtec-unit-tests
+        - recordtec-integration-tests
+        - recordtec-build
