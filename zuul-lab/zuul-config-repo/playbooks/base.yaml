@@ -1,0 +1,14 @@
+---
+- hosts: controller
+  tasks:
+    - name: Job started
+      debug:
+        msg: "Starting job on {{ inventory_hostname }}"
+
+    - name: Show workspace
+      command: pwd
+      register: workspace
+
+    - name: Print workspace
+      debug:
+        var: workspace.stdout

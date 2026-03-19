@@ -1,0 +1,6 @@
+---
+- hosts: controller
+  tasks:
+    - name: Job completed
+      debug:
+        msg: "Job finished successfully"

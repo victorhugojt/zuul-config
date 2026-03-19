@@ -1,0 +1,15 @@
+---
+# ===========================================================================
+# Add this file as .zuul.yaml in the ROOT of victorhugojt/recordtec-fe
+#
+# HYBRID APPROACH: GitHub Actions handles build/test/deploy
+# Zuul handles gating (controlled merge) and cross-repo coordination
+# ===========================================================================
+- project:
+    name: victorhugojt/recordtec-fe
+    check:
+      jobs:
+        - recordtec-fe-check  # Zuul validation (complements GitHub Actions)
+    gate:
+      jobs:
+        - recordtec-fe-check  # Must pass before Zuul merges the PR
