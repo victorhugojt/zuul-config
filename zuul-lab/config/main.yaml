@@ -1,0 +1,11 @@
+- tenant:
+    name: my-lab
+    source:
+      github:
+        config-projects:
+          - victorhugojt/zuul-config:
+              include-branches:
+                - main
+        untrusted-projects:
+          - victorhugojt/recordtec
+          - victorhugojt/recordtec-fe

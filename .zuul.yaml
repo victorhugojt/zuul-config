@@ -1,12 +1,14 @@
 ---
 # ===========================================================================
-# Zuul Pipeline & Job Definitions
-# Repo: victorhugojt/zuul-config
+# victorhugojt/zuul-config — config-project
+#
+# Owns ONLY shared infrastructure:
+#   - Pipelines (check, gate)
+#   - The base job (node definition, common setup/teardown)
+#
+# Each repo defines its own jobs and project stanza in its own .zuul.yaml
 # ===========================================================================
 
-# ---------------------------------------------------------------------------
-# CHECK pipeline - runs on every PR and push
-# ---------------------------------------------------------------------------
 - pipeline:
     name: check
     description: Validate pull requests automatically
@@ -33,9 +35,6 @@
         check: failure
         comment: true
 
-# ---------------------------------------------------------------------------
-# GATE pipeline - merges approved PRs
-# ---------------------------------------------------------------------------
 - pipeline:
     name: gate
     description: Merge approved and tested pull requests
@@ -64,13 +63,10 @@
       github:
         check: failure
 
-# ---------------------------------------------------------------------------
-# BASE job - all jobs inherit from this
-# ---------------------------------------------------------------------------
 - job:
     name: base
     parent: null
-    description: Base job with common setup
+    description: Base job — shared node, setup and teardown for all repos
     run: playbooks/base.yaml
     post-run: playbooks/post-base.yaml
     timeout: 1800
@@ -78,60 +74,3 @@
       nodes:
         - name: controller
           label: linux-executor
-
-# ---------------------------------------------------------------------------
-# Jobs for recordtec (backend)
-# ---------------------------------------------------------------------------
-- job:
-    name: recordtec-check
-    parent: base
-    description: Check job for recordtec backend
-    run: playbooks/recordtec-check.yaml
-
-- job:
-    name: recordtec-lint
-    parent: base
-    description: Lint job for recordtec backend
-    run: playbooks/recordtec-lint.yaml
-
-# ---------------------------------------------------------------------------
-# Jobs for recordtec-fe (frontend)
-# ---------------------------------------------------------------------------
-- job:
-    name: recordtec-fe-check
-    parent: base
-    description: Check job for recordtec frontend
-    run: playbooks/recordtec-fe-check.yaml
-
-- job:
-    name: recordtec-fe-lint
-    parent: base
-    description: Lint job for recordtec frontend
-    run: playbooks/recordtec-fe-lint.yaml
-
-# ---------------------------------------------------------------------------
-# PROJECT definitions - map jobs to each repository
-# ---------------------------------------------------------------------------
-- project:
-    name: victorhugojt/recordtec
-    merge-mode: squash
-    check:
-      jobs:
-        - recordtec-lint
-        - recordtec-check
-    gate:
-      jobs:
-        - recordtec-lint
-        - recordtec-check
-
-- project:
-    name: victorhugojt/recordtec-fe
-    merge-mode: squash
-    check:
-      jobs:
-        - recordtec-fe-lint
-        - recordtec-fe-check
-    gate:
-      jobs:
-        - recordtec-fe-lint
-        - recordtec-fe-check
