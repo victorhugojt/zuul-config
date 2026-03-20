@@ -52,7 +52,7 @@ echo "     • You:    ${MY_PUBLIC_IP}/32"
 echo "     • GitHub: ${GITHUB_IPV4:0:60}..."
 
 gcloud compute firewall-rules create allow-zuul-port-9000 \
-    --network=default \
+    --network=my-poc-vpc \
     --action=ALLOW \
     --direction=INGRESS \
     --rules=tcp:9000 \

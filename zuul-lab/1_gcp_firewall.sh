@@ -23,7 +23,7 @@ echo "   GitHub IPs: ${GITHUB_IPV4:0:60}..."
 echo ""
 echo "🔓 Creating firewall rule: allow GitHub → Zuul port 9000..."
 gcloud compute firewall-rules create allow-zuul-webhook \
-    --network=default \
+    --network=my-poc-vpc \
     --action=ALLOW \
     --direction=INGRESS \
     --rules=tcp:9000 \

@@ -19,9 +19,15 @@ services:
     environment:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=zookeeper:2888:3888;2181
+      ZOO_CFG_EXTRA: |
+        secureClientPort=2281
+        serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory
+        ssl.keyStore.location=/certs/zookeeper.pem
+        ssl.trustStore.location=/certs/cacert.pem
     volumes:
       - zookeeper-data:/data
       - zookeeper-log:/datalog
+      - ./config/certs:/certs:ro
     healthcheck:
       test: ["CMD", "zkServer.sh", "status"]
       interval: 10s
@@ -64,6 +70,7 @@ services:
       - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
       - ./config/main.yaml:/etc/zuul/main.yaml:ro
       - ./config/github-app.pem:/etc/zuul/github-app.pem:ro
+      - ./config/certs:/etc/zuul/certs:ro
       - zuul-keys:/var/lib/zuul
     command: zuul-scheduler -f
 
@@ -79,6 +86,7 @@ services:
       - zuul-scheduler
     volumes:
       - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
+      - ./config/certs:/etc/zuul/certs:ro
       - zuul-keys:/var/lib/zuul
       - zuul-executor-logs:/var/log/zuul
     command: zuul-executor -f
@@ -96,6 +104,7 @@ services:
       - zuul-scheduler
     volumes:
       - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
+      - ./config/certs:/etc/zuul/certs:ro
     command: zuul-web -f
 
   # ---------------------------------------------------------------------------
@@ -110,6 +119,7 @@ services:
         condition: service_healthy
     volumes:
       - ./config/nodepool.yaml:/etc/nodepool/nodepool.yaml:ro
+      - ./config/certs:/etc/nodepool/certs:ro
     command: nodepool-launcher -f -c /etc/nodepool/nodepool.yaml
 
   # ---------------------------------------------------------------------------

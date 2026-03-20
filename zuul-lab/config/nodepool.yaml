@@ -6,7 +6,12 @@
 
 zookeeper-servers:
   - host: zookeeper
-    port: 2181
+    port: 2281
+
+zookeeper-tls:
+  cert: /etc/nodepool/certs/clientcert.pem
+  key: /etc/nodepool/certs/clientkey.pem
+  ca: /etc/nodepool/certs/cacert.pem
 
 webapp:
   listen_address: '0.0.0.0'
