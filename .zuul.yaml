@@ -1,14 +1,4 @@
 ---
-# ===========================================================================
-# victorhugojt/zuul-config — config-project
-#
-# Owns ONLY shared infrastructure:
-#   - Pipelines (check, gate)
-#   - The base job (node definition, common setup/teardown)
-#
-# Each repo defines its own jobs and project stanza in its own .zuul.yaml
-# ===========================================================================
-
 - pipeline:
     name: check
     description: Validate pull requests automatically
