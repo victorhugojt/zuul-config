@@ -1,4 +1,11 @@
 - pipeline:
+    name: periodic
+    manager: independent
+    trigger:
+      timer:
+        - time: '0 * * * *'
+
+- pipeline:
     name: check
     manager: independent
     trigger:
