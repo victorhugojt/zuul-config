@@ -3,32 +3,4 @@
     manager: independent
     trigger:
       github:
-        - event: pull_request
-          action:
-            - opened
-            - changed
-            - reopened
         - event: push
-          ref: ^refs/heads/main$
-    success:
-      github:
-        status: 'success'
-    failure:
-      github:
-        status: 'failure'
-
-- pipeline:
-    name: gate
-    manager: dependent
-    trigger:
-      github:
-        - event: pull_request_review
-          action: submitted
-          state: approved
-    success:
-      github:
-        status: 'success'
-        merge: true
-    failure:
-      github:
-        status: 'failure'
