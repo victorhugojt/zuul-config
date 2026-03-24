@@ -1,8 +1,5 @@
 - pipeline:
     name: check
-    description: |
-      Newly opened pull requests enter this pipeline for an initial
-      check vote.
     manager: independent
     trigger:
       github:
@@ -13,45 +10,25 @@
             - reopened
         - event: push
           ref: ^refs/heads/main$
-    start:
-      github:
-        check: in_progress
-        comment: false
     success:
       github:
-        check: success
-        comment: false
+        status: 'success'
     failure:
       github:
-        check: failure
-        comment: true
+        status: 'failure'
 
 - pipeline:
     name: gate
-    description: |
-      Changes that have been approved are enqueued in order in this
-      pipeline, and if they pass tests, will be merged.
     manager: dependent
-    supercedes: check
     trigger:
       github:
         - event: pull_request_review
           action: submitted
           state: approved
-    require:
-      github:
-        review:
-          - type: approved
-        status:
-          - context: "zuul:check"
-            state: success
-    start:
-      github:
-        check: in_progress
     success:
       github:
-        check: success
+        status: 'success'
         merge: true
     failure:
       github:
-        check: failure
+        status: 'failure'
