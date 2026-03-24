@@ -99,19 +99,19 @@ services:
     command: zuul-web -f
 
   # ---------------------------------------------------------------------------
-  # Nodepool Launcher (provisions test nodes)
+  # Zuul Launcher (integrated node provisioner — replaces Nodepool in Zuul 14+)
   # ---------------------------------------------------------------------------
-  nodepool-launcher:
-    image: zuul/nodepool-launcher:latest
-    container_name: nodepool-launcher
+  zuul-launcher:
+    image: zuul/zuul-launcher:latest
+    container_name: zuul-launcher
     restart: unless-stopped
     depends_on:
       zookeeper:
         condition: service_healthy
     volumes:
-      - ./config/nodepool.yaml:/etc/nodepool/nodepool.yaml:ro
-      - ./config/certs:/etc/nodepool/certs:ro
-    command: nodepool-launcher -f -c /etc/nodepool/nodepool.yaml
+      - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
+      - zuul-keys:/var/lib/zuul
+    command: zuul-launcher -f
 
   # ---------------------------------------------------------------------------
   # Worker Node — where CI jobs actually run
