@@ -1,7 +1,10 @@
 - job:
     name: base
     parent: null
-    description: Base job — shared node, setup and teardown for all repos
+    description: Base job for all repositories.
+    run: playbooks/base.yaml
+    post-run: playbooks/post-base.yaml
+    timeout: 1800
     nodeset:
       nodes:
         - name: controller
