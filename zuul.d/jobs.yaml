@@ -1,0 +1,8 @@
+- job:
+    name: base
+    parent: null
+    description: Base job — shared node, setup and teardown for all repos
+    nodeset:
+      nodes:
+        - name: controller
+          label: linux-executor
