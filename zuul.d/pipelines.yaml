@@ -1,25 +1,30 @@
 - pipeline:
     name: check
     description: |
-      Newly uploaded patchsets enter this pipeline to receive an
-      initial +/-1 Verified vote.
+      Newly opened pull requests enter this pipeline for an initial
+      check vote.
     manager: independent
-    require:
-      gerrit:
-        open: True
-        current-patchset: True
     trigger:
-      gerrit:
-        - event: patchset-created
-        - event: change-restored
-        - event: comment-added
-          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*recheck
+      github:
+        - event: pull_request
+          action:
+            - opened
+            - changed
+            - reopened
+        - event: push
+          ref: ^refs/heads/main$
+    start:
+      github:
+        check: in_progress
+        comment: false
     success:
-      gerrit:
-        Verified: 1
+      github:
+        check: success
+        comment: false
     failure:
-      gerrit:
-        Verified: -1
+      github:
+        check: failure
+        comment: true
 
 - pipeline:
     name: gate
@@ -27,25 +32,26 @@
       Changes that have been approved are enqueued in order in this
       pipeline, and if they pass tests, will be merged.
     manager: dependent
-    post-review: True
-    require:
-      gerrit:
-        open: True
-        current-patchset: True
-        approval:
-          - Workflow: 1
+    supercedes: check
     trigger:
-      gerrit:
-        - event: comment-added
-          approval:
-            - Workflow: 1
+      github:
+        - event: pull_request_review
+          action: submitted
+          state: approved
+    require:
+      github:
+        review:
+          - type: approved
+        status:
+          - context: "zuul:check"
+            state: success
     start:
-      gerrit:
-        Verified: 0
+      github:
+        check: in_progress
     success:
-      gerrit:
-        Verified: 2
-        submit: true
+      github:
+        check: success
+        merge: true
     failure:
-      gerrit:
-        Verified: -2
+      github:
+        check: failure
