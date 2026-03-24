@@ -1,15 +1,5 @@
 - project:
-    name: ^.*$
-    check:
-      jobs: []
-    gate:
-      jobs: []
-
-- project:
-    name: zuul-config
+    name: victorhugojt/zuul-config
     check:
       jobs:
-        - noop
-    gate:
-      jobs:
-        - noop
+        - base
