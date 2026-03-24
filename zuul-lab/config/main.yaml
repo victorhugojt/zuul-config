@@ -6,6 +6,6 @@
           - victorhugojt/zuul-config:
               include-branches:
                 - main
-        untrusted-projects:
-          - victorhugojt/recordtec
-          - victorhugojt/recordtec-fe
+        # untrusted-projects:
+        #   - victorhugojt/recordtec
+        #   - victorhugojt/recordtec-fe

@@ -74,3 +74,9 @@
       nodes:
         - name: controller
           label: linux-executor
+
+- project:
+    name: victorhugojt/zuul-config
+    check:
+      jobs:
+        - base
