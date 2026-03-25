@@ -105,6 +105,7 @@ services:
     volumes:
       - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
       - ./config/certs:/etc/zuul/certs:ro
+      - ./config/github-app.pem:/etc/zuul/github-app.pem:ro
     command: zuul-web -f
 
   # ---------------------------------------------------------------------------
