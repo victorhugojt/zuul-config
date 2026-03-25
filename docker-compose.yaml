@@ -1,0 +1,107 @@
+---
+services:
+
+  zookeeper:
+    image: zookeeper:3.9
+    container_name: zuul-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888;2181
+      ZOO_CFG_EXTRA: "secureClientPort=2281\nserverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory\nssl.keyStore.location=/certs/zookeeper.pem\nssl.trustStore.location=/certs/cacert.pem"
+    volumes:
+      - zookeeper-data:/data
+      - zookeeper-log:/datalog
+      - ./config/certs:/certs:ro
+    healthcheck:
+      test: ["CMD", "zkServer.sh", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mysql:
+    image: mysql:8.0
+    container_name: zuul-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_DATABASE: zuul
+      MYSQL_USER: zuul
+      MYSQL_PASSWORD: zuul_pass
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uzuul", "-pzuul_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  zuul-scheduler:
+    image: zuul/zuul-scheduler:latest
+    container_name: zuul-scheduler
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
+      - ./config/main.yaml:/etc/zuul/main.yaml:ro
+      - ./config/github-app.pem:/etc/zuul/github-app.pem:ro
+      - ./config/certs:/etc/zuul/certs:ro
+      - zuul-keys:/var/lib/zuul
+    command: zuul-scheduler -f -d
+
+  zuul-executor:
+    image: zuul/zuul-executor:latest
+    container_name: zuul-executor
+    restart: unless-stopped
+    privileged: true
+    depends_on:
+      - zuul-scheduler
+    volumes:
+      - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
+      - ./config/certs:/etc/zuul/certs:ro
+      - zuul-keys:/var/lib/zuul
+      - zuul-executor-logs:/var/log/zuul
+    command: zuul-executor -f
+
+  zuul-web:
+    image: zuul/zuul-web:latest
+    container_name: zuul-web
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    depends_on:
+      - zuul-scheduler
+    volumes:
+      - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
+      - ./config/certs:/etc/zuul/certs:ro
+      - ./config/github-app.pem:/etc/zuul/github-app.pem:ro
+    command: zuul-web -f
+
+  nodepool-launcher:
+    image: zuul/nodepool-launcher:latest
+    container_name: nodepool-launcher
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    volumes:
+      - ./config/nodepool.yaml:/etc/nodepool/nodepool.yaml:ro
+      - ./config/certs:/etc/nodepool/certs:ro
+    command: nodepool-launcher -f -c /etc/nodepool/nodepool.yaml
+
+  zuul-node:
+    image: zuul-node:lab
+    container_name: zuul-node
+    hostname: zuul-node
+    restart: unless-stopped
+
+volumes:
+  zookeeper-data:
+  zookeeper-log:
+  mysql-data:
+  zuul-keys:
+  zuul-executor-logs:
