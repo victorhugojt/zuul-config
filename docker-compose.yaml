@@ -1,17 +1,6 @@
 ---
-# ===========================================================================
-# Zuul CI/CD Lab - Docker Compose
-# ===========================================================================
-# Usage:
-#   docker compose up -d
-#   docker compose logs -f zuul-scheduler
-#   docker compose down
-
 services:
 
-  # ---------------------------------------------------------------------------
-  # ZooKeeper - Coordination service
-  # ---------------------------------------------------------------------------
   zookeeper:
     image: zookeeper:3.9
     container_name: zuul-zookeeper
@@ -19,11 +8,7 @@ services:
     environment:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=zookeeper:2888:3888;2181
-      ZOO_CFG_EXTRA: |
-        secureClientPort=2281
-        serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory
-        ssl.keyStore.location=/certs/zookeeper.pem
-        ssl.trustStore.location=/certs/cacert.pem
+      ZOO_CFG_EXTRA: "secureClientPort=2281\nserverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory\nssl.keyStore.location=/certs/zookeeper.pem\nssl.trustStore.location=/certs/cacert.pem"
     volumes:
       - zookeeper-data:/data
       - zookeeper-log:/datalog
@@ -34,9 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ---------------------------------------------------------------------------
-  # MySQL - Zuul database
-  # ---------------------------------------------------------------------------
   mysql:
     image: mysql:8.0
     container_name: zuul-mysql
@@ -54,9 +36,6 @@ services:
       timeout: 5s
       retries: 10
 
-  # ---------------------------------------------------------------------------
-  # Zuul Scheduler
-  # ---------------------------------------------------------------------------
   zuul-scheduler:
     image: zuul/zuul-scheduler:latest
     container_name: zuul-scheduler
@@ -72,16 +51,13 @@ services:
       - ./config/github-app.pem:/etc/zuul/github-app.pem:ro
       - ./config/certs:/etc/zuul/certs:ro
       - zuul-keys:/var/lib/zuul
-    command: zuul-scheduler -f
+    command: zuul-scheduler -f -d
 
-  # ---------------------------------------------------------------------------
-  # Zuul Executor
-  # ---------------------------------------------------------------------------
   zuul-executor:
     image: zuul/zuul-executor:latest
     container_name: zuul-executor
     restart: unless-stopped
-    privileged: true                  # Needed for bubblewrap job isolation
+    privileged: true
     depends_on:
       - zuul-scheduler
     volumes:
@@ -91,15 +67,12 @@ services:
       - zuul-executor-logs:/var/log/zuul
     command: zuul-executor -f
 
-  # ---------------------------------------------------------------------------
-  # Zuul Web (Dashboard + Webhook endpoint)
-  # ---------------------------------------------------------------------------
   zuul-web:
     image: zuul/zuul-web:latest
     container_name: zuul-web
     restart: unless-stopped
     ports:
-      - "9000:9000"                   # Dashboard + webhook endpoint
+      - "9000:9000"
     depends_on:
       - zuul-scheduler
     volumes:
@@ -108,9 +81,6 @@ services:
       - ./config/github-app.pem:/etc/zuul/github-app.pem:ro
     command: zuul-web -f
 
-  # ---------------------------------------------------------------------------
-  # Nodepool Launcher (provisions test nodes)
-  # ---------------------------------------------------------------------------
   nodepool-launcher:
     image: zuul/nodepool-launcher:latest
     container_name: nodepool-launcher
@@ -123,10 +93,6 @@ services:
       - ./config/certs:/etc/nodepool/certs:ro
     command: nodepool-launcher -f -c /etc/nodepool/nodepool.yaml
 
-  # ---------------------------------------------------------------------------
-  # Worker Node — where CI jobs actually run
-  # Built from node-image/Dockerfile and tagged as zuul-node:lab.
-  # ---------------------------------------------------------------------------
   zuul-node:
     image: zuul-node:lab
     container_name: zuul-node

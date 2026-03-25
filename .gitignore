@@ -1,0 +1,10 @@
+# TLS certificates and private keys — never commit these
+config/*.pem
+config/*.p12
+config/*.key
+config/*.csr
+config/*.srl
+config/certs/
+
+# GitHub App private key — contains sensitive credentials
+config/github-app.pem
