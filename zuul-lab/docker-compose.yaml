@@ -87,6 +87,7 @@ services:
     volumes:
       - ./config/zuul.conf:/etc/zuul/zuul.conf:ro
       - ./config/certs:/etc/zuul/certs:ro
+      - ./config/github-app.pem:/etc/zuul/github-app.pem:ro
       - zuul-keys:/var/lib/zuul
       - zuul-executor-logs:/var/log/zuul
     command: zuul-executor -f
